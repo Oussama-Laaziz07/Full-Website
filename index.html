@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offria - Petites Annonces au Maroc</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root { --primary-orange: #FF9500; }
+        .bg-orange-main { background-color: var(--primary-orange); }
+        .text-orange-main { color: var(--primary-orange); }
+        .hover-orange:hover { background-color: #e08300; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans min-h-screen flex flex-col">
+
+    <!-- Header Navigation -->
+    <header class="bg-white shadow-sm border-b sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+            <a href="#" onclick="showSection('home')" class="flex items-center gap-3 text-2xl font-bold text-gray-900">
+                <img src="images/Offria.jpg" alt="Offria Logo" class="h-10 w-10 object-cover rounded-lg shadow-sm">
+                <span>Offria</span>
+            </a>
+
+            <nav class="flex items-center gap-4">
+                <button onclick="showSection('home')" class="text-gray-600 hover:text-orange-main font-medium">Annonces</button>
+                <button onclick="showSection('add-ad')" class="bg-orange-main text-white px-4 py-2 rounded-lg font-medium hover-orange transition">
+                    <i class="fa-solid fa-plus mr-1"></i> Déposer une annonce
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full">
+
+        <!-- SECTION 1: HOME & SEARCH -->
+        <section id="section-home" class="page-section">
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-6 flex flex-wrap gap-3 items-center">
+                <div class="flex-grow min-w-[200px]">
+                    <input type="text" id="search-input" placeholder="Que cherchez-vous ?" oninput="filterAds()" class="w-full border rounded-lg px-4 py-2 border-gray-300 focus:outline-none focus:border-orange-main">
+                </div>
+                <div class="w-48">
+                    <select id="category-filter" onchange="filterAds()" class="w-full border rounded-lg px-3 py-2 border-gray-300 bg-white">
+                        <option value="">Toutes les catégories</option>
+                    </select>
+                </div>
+                <div class="w-48">
+                    <select id="city-filter" onchange="filterAds()" class="w-full border rounded-lg px-3 py-2 border-gray-300 bg-white">
+                        <option value="">Toutes les villes</option>
+                    </select>
+                </div>
+            </div>
+
+            <h2 class="text-xl font-bold mb-4">Annonces disponibles</h2>
+            <div id="ads-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+        </section>
+
+        <!-- SECTION 2: AD DETAILS -->
+        <section id="section-details" class="page-section hidden">
+            <button onclick="showSection('home')" class="mb-4 text-gray-600 hover:text-orange-main font-medium">&larr; Retour aux annonces</button>
+            <div class="bg-white border rounded-xl shadow-sm p-6 max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <img id="detail-img" src="" class="w-full h-80 object-cover rounded-lg shadow-sm" alt="Annonce">
+                </div>
+                <div>
+                    <span id="detail-category" class="text-xs font-semibold uppercase text-orange-600 bg-orange-50 px-2 py-1 rounded"></span>
+                    <h1 id="detail-title" class="text-2xl font-bold mt-2"></h1>
+                    <p id="detail-price" class="text-3xl font-extrabold text-gray-900 mt-2"></p>
+                    <p id="detail-city" class="text-sm text-gray-500 mt-1"></p>
+
+                    <div class="mt-4 p-3 bg-gray-50 rounded-lg border text-sm text-gray-700">
+                        <p id="detail-desc"></p>
+                    </div>
+
+                    <div class="mt-6 border-t pt-4">
+                        <h3 class="font-bold text-md mb-2">Contacter l'annonceur</h3>
+                        <form onsubmit="sendMessage(event)" class="space-y-3">
+                            <input type="text" id="msg-name" required placeholder="Votre nom" class="w-full border p-2 rounded text-sm">
+                            <input type="email" id="msg-email" required placeholder="Votre e-mail" class="w-full border p-2 rounded text-sm">
+                            <textarea id="msg-text" required placeholder="Votre message..." class="w-full border p-2 rounded text-sm h-20"></textarea>
+                            <button type="submit" class="w-full bg-orange-main text-white font-medium py-2 rounded-lg hover-orange">Envoyer le message</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: POST AN AD -->
+        <section id="section-add-ad" class="page-section hidden">
+            <div class="bg-white border rounded-xl p-6 max-w-xl mx-auto shadow-sm">
+                <h2 class="text-xl font-bold mb-4">Déposer une nouvelle annonce</h2>
+                <form onsubmit="handlePostAd(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Titre de l'annonce</label>
+                        <input type="text" id="post-title" required class="w-full border p-2 rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Prix (DH)</label>
+                        <input type="number" id="post-price" required class="w-full border p-2 rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Catégorie</label>
+                        <select id="post-category" required class="w-full border p-2 rounded-lg bg-white"></select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Ville</label>
+                        <select id="post-city" required class="w-full border p-2 rounded-lg bg-white"></select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Image URL or project path (optional)</label>
+                        <input type="text" id="post-img" placeholder="images/photo.jpg or https://..." class="w-full border p-2 rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Description</label>
+                        <textarea id="post-desc" required class="w-full border p-2 rounded-lg h-28"></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-orange-main text-white font-bold py-2 rounded-lg hover-orange">Publier l'annonce</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- SECTION 4: LOGIN -->
+        <section id="section-login" class="page-section hidden">
+            <div class="bg-white border rounded-xl p-6 max-w-md mx-auto shadow-sm">
+                <h2 class="text-xl font-bold mb-4">Se connecter</h2>
+                <form onsubmit="alert('Connexion réussie !'); showSection('home'); return false;" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Adresse email</label>
+                        <input type="email" required class="w-full border p-2 rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Mot de passe</label>
+                        <input type="password" required class="w-full border p-2 rounded-lg">
+                    </div>
+                    <button type="submit" class="w-full bg-orange-main text-white font-bold py-2 rounded-lg hover-orange">Se connecter</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- SECTION 5: REGISTER -->
+        <section id="section-register" class="page-section hidden">
+            <div class="bg-white border rounded-xl p-6 max-w-md mx-auto shadow-sm">
+                <h2 class="text-xl font-bold mb-4">Créer un compte</h2>
+                <form onsubmit="alert('Compte créé avec succès !'); showSection('home'); return false;" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Nom complet</label>
+                        <input type="text" required class="w-full border p-2 rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Adresse email</label>
+                        <input type="email" required class="w-full border p-2 rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Mot de passe</label>
+                        <input type="password" required class="w-full border p-2 rounded-lg">
+                    </div>
+                    <button type="submit" class="w-full bg-orange-main text-white font-bold py-2 rounded-lg hover-orange">S'inscrire</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- SECTION 6: ADMIN DASHBOARD -->
+        <section id="section-admin" class="page-section hidden">
+            <div class="space-y-8">
+                <h1 class="text-2xl font-bold text-purple-900"><i class="fa-solid fa-user-shield mr-2"></i> Espace Administration</h1>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-5 border rounded-xl shadow-sm">
+                        <h3 class="font-bold text-lg mb-3">Gestion des Villes</h3>
+                        <div class="flex gap-2 mb-4">
+                            <input type="text" id="new-city-input" placeholder="Nouvelle ville..." class="border p-2 rounded flex-grow text-sm">
+                            <button onclick="addCity()" class="bg-purple-600 text-white px-4 py-2 rounded text-sm font-medium">Ajouter</button>
+                        </div>
+                        <ul id="admin-cities-list" class="divide-y max-h-48 overflow-y-auto"></ul>
+                    </div>
+
+                    <div class="bg-white p-5 border rounded-xl shadow-sm">
+                        <h3 class="font-bold text-lg mb-3">Gestion des Catégories</h3>
+                        <div class="flex gap-2 mb-4">
+                            <input type="text" id="new-cat-input" placeholder="Nouvelle catégorie..." class="border p-2 rounded flex-grow text-sm">
+                            <button onclick="addCategory()" class="bg-purple-600 text-white px-4 py-2 rounded text-sm font-medium">Ajouter</button>
+                        </div>
+                        <ul id="admin-categories-list" class="divide-y max-h-48 overflow-y-auto"></ul>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 border rounded-xl shadow-sm">
+                    <h3 class="font-bold text-lg mb-3">Gestion des Membres</h3>
+                    <ul id="admin-users-list" class="divide-y max-h-48 overflow-y-auto"></ul>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t mt-12 py-6">
+        <div class="max-w-7xl mx-auto px-4 text-center text-sm text-gray-500">
+            <p>&copy; 2026 Offria - Application Web (OFPPT Digital Development)</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="app.js"></script>
+</body>
+</html>
+
