@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Offria - Petites Annonces au Maroc</title>
-    <!-- Tailwind CSS CDN -->
+
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons CDN -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
         :root { --primary-orange: #FF9500; }
         .bg-orange-main { background-color: var(--primary-orange); }
@@ -16,197 +16,300 @@
         .hover-orange:hover { background-color: #e08300; }
     </style>
 </head>
+
 <body class="bg-gray-100 text-gray-800 font-sans min-h-screen flex flex-col">
 
-    <!-- Header Navigation -->
-    <header class="bg-white shadow-sm border-b sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-            <a href="#" onclick="showSection('home')" class="flex items-center gap-3 text-2xl font-bold text-gray-900">
-                <img src="images/Offria.jpg" alt="Offria Logo" class="h-10 w-10 object-cover rounded-lg shadow-sm">
-                <span>Offria</span>
-            </a>
+<header class="bg-white shadow-sm border-b sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+        <button type="button" onclick="showSection('home')"
+                class="flex items-center gap-3 text-2xl font-bold text-gray-900">
+            <img src="images/Offria.jpg" alt="Logo Offria"
+                 class="h-10 w-10 object-cover rounded-lg shadow-sm">
+            <span>Offria</span>
+        </button>
 
-            <nav class="flex items-center gap-4">
-                <button onclick="showSection('home')" class="text-gray-600 hover:text-orange-main font-medium">Annonces</button>
-                <button onclick="showSection('add-ad')" class="bg-orange-main text-white px-4 py-2 rounded-lg font-medium hover-orange transition">
-                    <i class="fa-solid fa-plus mr-1"></i> Déposer une annonce
-                </button>
-            </nav>
+        <nav class="flex flex-wrap items-center gap-3">
+            <button type="button" onclick="showSection('home')"
+                    class="text-gray-600 hover:text-orange-main font-medium">
+                Annonces
+            </button>
+
+            <button type="button" onclick="showSection('add-ad')"
+                    class="bg-orange-main text-white px-4 py-2 rounded-lg font-medium hover-orange">
+                <i class="fa-solid fa-plus mr-1"></i> Déposer une annonce
+            </button>
+
+            <button type="button" onclick="showSection('login')"
+                    class="text-gray-700 hover:text-orange-main font-medium">
+                Connexion
+            </button>
+
+            <button type="button" onclick="showSection('register')"
+                    class="bg-gray-900 text-white px-4 py-2 rounded-lg font-medium hover:bg-gray-700">
+                Inscription
+            </button>
+        </nav>
+    </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full">
+
+    <section id="section-home" class="page-section">
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-6 flex flex-wrap gap-3 items-center">
+            <div class="flex-grow min-w-[200px]">
+                <input type="text" id="search-input" placeholder="Que cherchez-vous ?"
+                       oninput="filterAds()"
+                       class="w-full border rounded-lg px-4 py-2 border-gray-300">
+            </div>
+            <div class="w-48">
+                <select id="category-filter" onchange="filterAds()"
+                        class="w-full border rounded-lg px-3 py-2 border-gray-300 bg-white">
+                    <option value="">Toutes les catégories</option>
+                </select>
+            </div>
+            <div class="w-48">
+                <select id="city-filter" onchange="filterAds()"
+                        class="w-full border rounded-lg px-3 py-2 border-gray-300 bg-white">
+                    <option value="">Toutes les villes</option>
+                </select>
+            </div>
         </div>
-    </header>
 
-    <!-- Main Container -->
-    <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full">
+        <h2 class="text-xl font-bold mb-4">Annonces disponibles</h2>
+        <div id="ads-grid"
+             class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+    </section>
 
-        <!-- SECTION 1: HOME & SEARCH -->
-        <section id="section-home" class="page-section">
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-6 flex flex-wrap gap-3 items-center">
-                <div class="flex-grow min-w-[200px]">
-                    <input type="text" id="search-input" placeholder="Que cherchez-vous ?" oninput="filterAds()" class="w-full border rounded-lg px-4 py-2 border-gray-300 focus:outline-none focus:border-orange-main">
+    <section id="section-details" class="page-section hidden">
+        <button type="button" onclick="showSection('home')"
+                class="mb-4 text-gray-600 hover:text-orange-main font-medium">
+            &larr; Retour aux annonces
+        </button>
+
+        <div class="bg-white border rounded-xl shadow-sm p-6 max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+                <img id="detail-img" src="" alt="Annonce"
+                     class="w-full h-80 object-cover rounded-lg shadow-sm">
+            </div>
+            <div>
+                <span id="detail-category"
+                      class="text-xs font-semibold uppercase text-orange-600 bg-orange-50 px-2 py-1 rounded"></span>
+                <h1 id="detail-title" class="text-2xl font-bold mt-2"></h1>
+                <p id="detail-price" class="text-3xl font-extrabold text-gray-900 mt-2"></p>
+                <p id="detail-city" class="text-sm text-gray-500 mt-1"></p>
+
+                <div class="mt-4 p-3 bg-gray-50 rounded-lg border text-sm text-gray-700">
+                    <p id="detail-desc"></p>
                 </div>
-                <div class="w-48">
-                    <select id="category-filter" onchange="filterAds()" class="w-full border rounded-lg px-3 py-2 border-gray-300 bg-white">
-                        <option value="">Toutes les catégories</option>
-                    </select>
-                </div>
-                <div class="w-48">
-                    <select id="city-filter" onchange="filterAds()" class="w-full border rounded-lg px-3 py-2 border-gray-300 bg-white">
-                        <option value="">Toutes les villes</option>
-                    </select>
+
+                <div class="mt-6 border-t pt-4">
+                    <h3 class="font-bold text-md mb-2">Contacter l'annonceur</h3>
+                    <form onsubmit="sendMessage(event)" class="space-y-3">
+                        <input type="text" id="msg-name" required placeholder="Votre nom"
+                               class="w-full border p-2 rounded text-sm">
+                        <input type="email" id="msg-email" required placeholder="Votre e-mail"
+                               class="w-full border p-2 rounded text-sm">
+                        <textarea id="msg-text" required placeholder="Votre message..."
+                                  class="w-full border p-2 rounded text-sm h-20"></textarea>
+                        <button type="submit"
+                                class="w-full bg-orange-main text-white font-medium py-2 rounded-lg hover-orange">
+                            Envoyer le message
+                        </button>
+                    </form>
                 </div>
             </div>
+        </div>
+    </section>
 
-            <h2 class="text-xl font-bold mb-4">Annonces disponibles</h2>
-            <div id="ads-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
-        </section>
-
-        <!-- SECTION 2: AD DETAILS -->
-        <section id="section-details" class="page-section hidden">
-            <button onclick="showSection('home')" class="mb-4 text-gray-600 hover:text-orange-main font-medium">&larr; Retour aux annonces</button>
-            <div class="bg-white border rounded-xl shadow-sm p-6 max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+    <section id="section-add-ad" class="page-section hidden">
+        <div class="bg-white border rounded-xl p-6 max-w-xl mx-auto shadow-sm">
+            <h2 class="text-xl font-bold mb-4">Déposer une nouvelle annonce</h2>
+            <form onsubmit="handlePostAd(event)" class="space-y-4">
                 <div>
-                    <img id="detail-img" src="" class="w-full h-80 object-cover rounded-lg shadow-sm" alt="Annonce">
+                    <label for="post-title" class="block text-sm font-medium mb-1">Titre de l'annonce</label>
+                    <input type="text" id="post-title" required class="w-full border p-2 rounded-lg">
                 </div>
                 <div>
-                    <span id="detail-category" class="text-xs font-semibold uppercase text-orange-600 bg-orange-50 px-2 py-1 rounded"></span>
-                    <h1 id="detail-title" class="text-2xl font-bold mt-2"></h1>
-                    <p id="detail-price" class="text-3xl font-extrabold text-gray-900 mt-2"></p>
-                    <p id="detail-city" class="text-sm text-gray-500 mt-1"></p>
-
-                    <div class="mt-4 p-3 bg-gray-50 rounded-lg border text-sm text-gray-700">
-                        <p id="detail-desc"></p>
-                    </div>
-
-                    <div class="mt-6 border-t pt-4">
-                        <h3 class="font-bold text-md mb-2">Contacter l'annonceur</h3>
-                        <form onsubmit="sendMessage(event)" class="space-y-3">
-                            <input type="text" id="msg-name" required placeholder="Votre nom" class="w-full border p-2 rounded text-sm">
-                            <input type="email" id="msg-email" required placeholder="Votre e-mail" class="w-full border p-2 rounded text-sm">
-                            <textarea id="msg-text" required placeholder="Votre message..." class="w-full border p-2 rounded text-sm h-20"></textarea>
-                            <button type="submit" class="w-full bg-orange-main text-white font-medium py-2 rounded-lg hover-orange">Envoyer le message</button>
-                        </form>
-                    </div>
+                    <label for="post-price" class="block text-sm font-medium mb-1">Prix (DH)</label>
+                    <input type="number" id="post-price" min="0" step="0.01" required
+                           class="w-full border p-2 rounded-lg">
                 </div>
-            </div>
-        </section>
+                <div>
+                    <label for="post-category" class="block text-sm font-medium mb-1">Catégorie</label>
+                    <select id="post-category" required class="w-full border p-2 rounded-lg bg-white"></select>
+                </div>
+                <div>
+                    <label for="post-city" class="block text-sm font-medium mb-1">Ville</label>
+                    <select id="post-city" required class="w-full border p-2 rounded-lg bg-white"></select>
+                </div>
+                <div>
+                    <label for="post-img" class="block text-sm font-medium mb-1">Image (URL ou chemin, facultatif)</label>
+                    <input type="text" id="post-img" placeholder="images/photo.jpg ou https://..."
+                           class="w-full border p-2 rounded-lg">
+                </div>
+                <div>
+                    <label for="post-desc" class="block text-sm font-medium mb-1">Description</label>
+                    <textarea id="post-desc" required class="w-full border p-2 rounded-lg h-28"></textarea>
+                </div>
+                <button type="submit"
+                        class="w-full bg-orange-main text-white font-bold py-2 rounded-lg hover-orange">
+                    Publier l'annonce
+                </button>
+            </form>
+        </div>
+    </section>
 
-        <!-- SECTION 3: POST AN AD -->
-        <section id="section-add-ad" class="page-section hidden">
-            <div class="bg-white border rounded-xl p-6 max-w-xl mx-auto shadow-sm">
-                <h2 class="text-xl font-bold mb-4">Déposer une nouvelle annonce</h2>
-                <form onsubmit="handlePostAd(event)" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Titre de l'annonce</label>
-                        <input type="text" id="post-title" required class="w-full border p-2 rounded-lg">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Prix (DH)</label>
-                        <input type="number" id="post-price" required class="w-full border p-2 rounded-lg">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Catégorie</label>
-                        <select id="post-category" required class="w-full border p-2 rounded-lg bg-white"></select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Ville</label>
-                        <select id="post-city" required class="w-full border p-2 rounded-lg bg-white"></select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Image URL or project path (optional)</label>
-                        <input type="text" id="post-img" placeholder="images/photo.jpg or https://..." class="w-full border p-2 rounded-lg">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Description</label>
-                        <textarea id="post-desc" required class="w-full border p-2 rounded-lg h-28"></textarea>
-                    </div>
-                    <button type="submit" class="w-full bg-orange-main text-white font-bold py-2 rounded-lg hover-orange">Publier l'annonce</button>
-                </form>
-            </div>
-        </section>
+    <section id="section-login" class="page-section hidden">
+        <div class="bg-white border rounded-xl p-6 max-w-md mx-auto shadow-sm">
+            <h2 class="text-xl font-bold mb-4">Se connecter</h2>
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label for="login-email" class="block text-sm font-medium mb-1">Adresse email</label>
+                    <input type="email" id="login-email" autocomplete="email" required
+                           class="w-full border p-2 rounded-lg">
+                </div>
+                <div>
+                    <label for="login-password" class="block text-sm font-medium mb-1">Mot de passe</label>
+                    <input type="password" id="login-password" autocomplete="current-password" required
+                           class="w-full border p-2 rounded-lg">
+                </div>
+                <p id="login-message" class="text-sm" role="status"></p>
+                <button type="submit"
+                        class="w-full bg-orange-main text-white font-bold py-2 rounded-lg hover-orange">
+                    Se connecter
+                </button>
+            </form>
+        </div>
+    </section>
 
-        <!-- SECTION 4: LOGIN -->
-        <section id="section-login" class="page-section hidden">
-            <div class="bg-white border rounded-xl p-6 max-w-md mx-auto shadow-sm">
-                <h2 class="text-xl font-bold mb-4">Se connecter</h2>
-                <form onsubmit="alert('Connexion réussie !'); showSection('home'); return false;" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Adresse email</label>
-                        <input type="email" required class="w-full border p-2 rounded-lg">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Mot de passe</label>
-                        <input type="password" required class="w-full border p-2 rounded-lg">
-                    </div>
-                    <button type="submit" class="w-full bg-orange-main text-white font-bold py-2 rounded-lg hover-orange">Se connecter</button>
-                </form>
-            </div>
-        </section>
+    <section id="section-register" class="page-section hidden">
+        <div class="bg-white border rounded-xl p-6 max-w-md mx-auto shadow-sm">
+            <h2 class="text-xl font-bold mb-4">Créer un compte</h2>
+            <form id="register-form" class="space-y-4">
+                <div>
+                    <label for="register-name" class="block text-sm font-medium mb-1">Nom complet</label>
+                    <input type="text" id="register-name" maxlength="150" autocomplete="name" required
+                           class="w-full border p-2 rounded-lg">
+                </div>
+                <div>
+                    <label for="register-email" class="block text-sm font-medium mb-1">Adresse email</label>
+                    <input type="email" id="register-email" maxlength="254" autocomplete="email" required
+                           class="w-full border p-2 rounded-lg">
+                </div>
+                <div>
+                    <label for="register-password" class="block text-sm font-medium mb-1">Mot de passe (8 caractères minimum)</label>
+                    <input type="password" id="register-password" minlength="8"
+                           autocomplete="new-password" required class="w-full border p-2 rounded-lg">
+                </div>
+                <p id="register-message" class="text-sm" role="status"></p>
+                <button type="submit"
+                        class="w-full bg-gray-900 text-white font-bold py-2 rounded-lg hover:bg-gray-700">
+                    S'inscrire
+                </button>
+            </form>
+        </div>
+    </section>
 
-        <!-- SECTION 5: REGISTER -->
-        <section id="section-register" class="page-section hidden">
-            <div class="bg-white border rounded-xl p-6 max-w-md mx-auto shadow-sm">
-                <h2 class="text-xl font-bold mb-4">Créer un compte</h2>
-                <form onsubmit="alert('Compte créé avec succès !'); showSection('home'); return false;" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Nom complet</label>
-                        <input type="text" required class="w-full border p-2 rounded-lg">
+    <section id="section-admin" class="page-section hidden">
+        <div class="space-y-8">
+            <h1 class="text-2xl font-bold text-purple-900">
+                <i class="fa-solid fa-user-shield mr-2"></i> Espace Administration
+            </h1>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white p-5 border rounded-xl shadow-sm">
+                    <h3 class="font-bold text-lg mb-3">Gestion des Villes</h3>
+                    <div class="flex gap-2 mb-4">
+                        <input type="text" id="new-city-input" placeholder="Nouvelle ville..."
+                               class="border p-2 rounded flex-grow text-sm">
+                        <button type="button" onclick="addCity()"
+                                class="bg-purple-600 text-white px-4 py-2 rounded text-sm font-medium">
+                            Ajouter
+                        </button>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Adresse email</label>
-                        <input type="email" required class="w-full border p-2 rounded-lg">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Mot de passe</label>
-                        <input type="password" required class="w-full border p-2 rounded-lg">
-                    </div>
-                    <button type="submit" class="w-full bg-orange-main text-white font-bold py-2 rounded-lg hover-orange">S'inscrire</button>
-                </form>
-            </div>
-        </section>
-
-        <!-- SECTION 6: ADMIN DASHBOARD -->
-        <section id="section-admin" class="page-section hidden">
-            <div class="space-y-8">
-                <h1 class="text-2xl font-bold text-purple-900"><i class="fa-solid fa-user-shield mr-2"></i> Espace Administration</h1>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="bg-white p-5 border rounded-xl shadow-sm">
-                        <h3 class="font-bold text-lg mb-3">Gestion des Villes</h3>
-                        <div class="flex gap-2 mb-4">
-                            <input type="text" id="new-city-input" placeholder="Nouvelle ville..." class="border p-2 rounded flex-grow text-sm">
-                            <button onclick="addCity()" class="bg-purple-600 text-white px-4 py-2 rounded text-sm font-medium">Ajouter</button>
-                        </div>
-                        <ul id="admin-cities-list" class="divide-y max-h-48 overflow-y-auto"></ul>
-                    </div>
-
-                    <div class="bg-white p-5 border rounded-xl shadow-sm">
-                        <h3 class="font-bold text-lg mb-3">Gestion des Catégories</h3>
-                        <div class="flex gap-2 mb-4">
-                            <input type="text" id="new-cat-input" placeholder="Nouvelle catégorie..." class="border p-2 rounded flex-grow text-sm">
-                            <button onclick="addCategory()" class="bg-purple-600 text-white px-4 py-2 rounded text-sm font-medium">Ajouter</button>
-                        </div>
-                        <ul id="admin-categories-list" class="divide-y max-h-48 overflow-y-auto"></ul>
-                    </div>
+                    <ul id="admin-cities-list" class="divide-y max-h-48 overflow-y-auto"></ul>
                 </div>
 
                 <div class="bg-white p-5 border rounded-xl shadow-sm">
-                    <h3 class="font-bold text-lg mb-3">Gestion des Membres</h3>
-                    <ul id="admin-users-list" class="divide-y max-h-48 overflow-y-auto"></ul>
+                    <h3 class="font-bold text-lg mb-3">Gestion des Catégories</h3>
+                    <div class="flex gap-2 mb-4">
+                        <input type="text" id="new-cat-input" placeholder="Nouvelle catégorie..."
+                               class="border p-2 rounded flex-grow text-sm">
+                        <button type="button" onclick="addCategory()"
+                                class="bg-purple-600 text-white px-4 py-2 rounded text-sm font-medium">
+                            Ajouter
+                        </button>
+                    </div>
+                    <ul id="admin-categories-list" class="divide-y max-h-48 overflow-y-auto"></ul>
                 </div>
             </div>
-        </section>
-
-    </main>
-
-    <!-- Footer -->
-    <footer class="bg-white border-t mt-12 py-6">
-        <div class="max-w-7xl mx-auto px-4 text-center text-sm text-gray-500">
-            <p>&copy; 2026 Offria - Application Web (OFPPT Digital Development)</p>
+            <div class="bg-white p-5 border rounded-xl shadow-sm">
+                <h3 class="font-bold text-lg mb-3">Gestion des Membres</h3>
+                <ul id="admin-users-list" class="divide-y max-h-48 overflow-y-auto"></ul>
+            </div>
         </div>
-    </footer>
+    </section>
 
-    <!-- Scripts -->
-    <script src="app.js"></script>
+</main>
+
+<footer class="bg-white border-t mt-12 py-6">
+    <div class="max-w-7xl mx-auto px-4 text-center text-sm text-gray-500">
+        <p>&copy; 2026 Offria - Application Web (OFPPT Digital Development)</p>
+    </div>
+</footer>
+
+<script src="app.js"></script>
+<script>
+async function submitAuthForm(form, endpoint, messageId, payload) {
+    const message = document.getElementById(messageId);
+    const button = form.querySelector('button[type="submit"]');
+    message.textContent = 'Veuillez patienter...';
+    message.className = 'text-sm text-gray-600';
+    button.disabled = true;
+
+    try {
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.error || 'La demande a échoué.');
+        }
+
+        message.textContent = result.message || 'Opération réussie.';
+        message.className = 'text-sm text-green-700';
+        form.reset();
+
+        if (result.user) {
+            showSection('home');
+        }
+    } catch (error) {
+        message.textContent = error.message || 'Impossible de contacter le serveur.';
+        message.className = 'text-sm text-red-700';
+    } finally {
+        button.disabled = false;
+    }
+}
+
+document.getElementById('login-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    submitAuthForm(this, '/api/login.php', 'login-message', {
+        email: document.getElementById('login-email').value.trim(),
+        password: document.getElementById('login-password').value
+    });
+});
+
+document.getElementById('register-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    submitAuthForm(this, '/api/register.php', 'register-message', {
+        full_name: document.getElementById('register-name').value.trim(),
+        email: document.getElementById('register-email').value.trim(),
+        password: document.getElementById('register-password').value
+    });
+});
+</script>
 </body>
 </html>
-
