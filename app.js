@@ -11,7 +11,11 @@ async function api(path, options = {}) {
   const isFormData = options.body instanceof FormData;
   const res = await fetch(path, {...options, headers:{...(options.headers||{}), ...(options.body && !isFormData ? {'Content-Type':'application/json'} : {})}});
   let data;
-  try { data = await res.json(); } catch { throw new Error('API returned a non-JSON response (' + res.status + ').'); }
+  const responseText=await res.text();
+  try { data = JSON.parse(responseText); } catch {
+    const hint=responseText.replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim().slice(0,180);
+    throw new Error('The server returned an unexpected response ('+res.status+'). '+(hint||'Check the Vercel function logs.'));
+  }
   if (!res.ok) throw new Error(data.error || 'Request failed (' + res.status + ')');
   return data;
 }

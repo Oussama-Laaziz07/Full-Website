@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__.'/../config/auth.php';
 
+try {
 $pdo = db();
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 $select = "SELECT a.id,a.title,a.price,a.description,c.name AS category,ci.name AS city,
@@ -69,3 +70,7 @@ if ($method === 'POST') {
     } catch(Throwable $e) { if($pdo->inTransaction())$pdo->rollBack(); throw $e; }
 }
 header('Allow: GET, POST'); jsonResponse(['error'=>'Method not allowed.'],405);
+} catch(Throwable $e) {
+    error_log('ads.php failed: '.(string)$e);
+    jsonResponse(['error'=>'The ad could not be saved. Check the Vercel function logs for api/ads.php.'],500);
+}
