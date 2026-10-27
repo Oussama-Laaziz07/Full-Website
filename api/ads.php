@@ -53,7 +53,7 @@ if ($method === 'POST') {
             CURLOPT_TIMEOUT=>45,
         ]);
         $response=curl_exec($curl); $status=(int)curl_getinfo($curl,CURLINFO_HTTP_CODE); $curlError=curl_error($curl);
-        curl_close($curl);
+        unset($curl);
         $uploaded=is_string($response)?json_decode($response,true):null;
         if($curlError!==''||$status<200||$status>=300||!is_array($uploaded)||empty($uploaded['secure_url'])) {
             error_log('Cloudinary upload failed: '.($curlError!==''?$curlError:'HTTP '.$status.' '.substr((string)$response,0,500)));
