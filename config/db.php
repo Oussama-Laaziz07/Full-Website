@@ -3,14 +3,14 @@ declare(strict_types=1);
 
 function db(): PDO
 {
-    $host = getenv('DB_HOST');
-    $port = getenv('DB_PORT');
-    $name = getenv('DB_NAME');
-    $user = getenv('DB_USER');
+    $host = getenv('DB_HOST') ?: 'mysql-38cf0410-ousslz1607-e6ab.j.aivencloud.com';
+    $port = getenv('DB_PORT') ?: '19578';
+    $name = getenv('DB_NAME') ?: 'defaultdb';
+    $user = getenv('DB_USER') ?: 'avnadmin';
     $password = getenv('DB_PASSWORD');
 
-    if (!$host || !$port || !$name || !$user || !$password) {
-        throw new RuntimeException('Database environment variables are missing.');
+    if (!$password) {
+        throw new RuntimeException('DB_PASSWORD environment variable is missing.');
     }
 
     $ca = dirname(__DIR__) . '/certs/ca.pem';

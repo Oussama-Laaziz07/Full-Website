@@ -48,6 +48,12 @@
                     class="bg-gray-900 text-white px-4 py-2 rounded-lg font-medium hover:bg-gray-700">
                 Inscription
             </button>
+            <button id="my-ads-nav" type="button" onclick="showSection('my-ads')"
+                    class="hidden text-gray-700 hover:text-orange-main font-medium">Mes annonces</button>
+            <button id="admin-nav" type="button" onclick="openAdmin()"
+                    class="hidden bg-purple-700 text-white px-4 py-2 rounded-lg font-medium">Administration</button>
+            <button id="logout-nav" type="button" onclick="logout()"
+                    class="hidden text-gray-700 hover:text-red-600 font-medium">Déconnexion</button>
         </nav>
     </div>
 </header>
@@ -153,7 +159,7 @@
                 </div>
                 <button type="submit"
                         class="w-full bg-orange-main text-white font-bold py-2 rounded-lg hover-orange">
-                    Publier l'annonce
+                    Envoyer pour validation
                 </button>
             </form>
         </div>
@@ -210,42 +216,25 @@
         </div>
     </section>
 
-    <section id="section-admin" class="page-section hidden">
-        <div class="space-y-8">
-            <h1 class="text-2xl font-bold text-purple-900">
-                <i class="fa-solid fa-user-shield mr-2"></i> Espace Administration
-            </h1>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-white p-5 border rounded-xl shadow-sm">
-                    <h3 class="font-bold text-lg mb-3">Gestion des Villes</h3>
-                    <div class="flex gap-2 mb-4">
-                        <input type="text" id="new-city-input" placeholder="Nouvelle ville..."
-                               class="border p-2 rounded flex-grow text-sm">
-                        <button type="button" onclick="addCity()"
-                                class="bg-purple-600 text-white px-4 py-2 rounded text-sm font-medium">
-                            Ajouter
-                        </button>
-                    </div>
-                    <ul id="admin-cities-list" class="divide-y max-h-48 overflow-y-auto"></ul>
-                </div>
+    <section id="section-my-ads" class="page-section hidden">
+        <div class="bg-white border rounded-xl p-6 max-w-3xl mx-auto shadow-sm">
+            <h2 class="text-xl font-bold mb-2">Mes annonces retirées</h2>
+            <p class="text-sm text-gray-600 mb-4">Vous pouvez demander à l’administrateur de rétablir une annonce retirée.</p>
+            <div id="my-ads-list" class="space-y-4"></div>
+        </div>
+    </section>
 
-                <div class="bg-white p-5 border rounded-xl shadow-sm">
-                    <h3 class="font-bold text-lg mb-3">Gestion des Catégories</h3>
-                    <div class="flex gap-2 mb-4">
-                        <input type="text" id="new-cat-input" placeholder="Nouvelle catégorie..."
-                               class="border p-2 rounded flex-grow text-sm">
-                        <button type="button" onclick="addCategory()"
-                                class="bg-purple-600 text-white px-4 py-2 rounded text-sm font-medium">
-                            Ajouter
-                        </button>
-                    </div>
-                    <ul id="admin-categories-list" class="divide-y max-h-48 overflow-y-auto"></ul>
-                </div>
+    <section id="section-admin" class="page-section hidden">
+        <div class="space-y-6">
+            <h1 class="text-2xl font-bold text-purple-900"><i class="fa-solid fa-user-shield mr-2"></i>Espace Administration</h1>
+            <div class="bg-white p-5 border rounded-xl shadow-sm"><h2 class="font-bold text-lg mb-3">Annonces à valider</h2><div id="admin-pending-ads" class="space-y-3"></div></div>
+            <div class="bg-white p-5 border rounded-xl shadow-sm"><h2 class="font-bold text-lg mb-3">Liste d’attente des annonces retirées</h2><div id="admin-removed-ads" class="space-y-3"></div></div>
+            <div class="bg-white p-5 border rounded-xl shadow-sm"><h2 class="font-bold text-lg mb-3">Demandes d’appel</h2><div id="admin-appeals" class="space-y-3"></div></div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white p-5 border rounded-xl shadow-sm"><h2 class="font-bold text-lg mb-3">Villes</h2><form onsubmit="addAdminItem(event,'city')" class="flex gap-2 mb-3"><input id="new-city-input" required maxlength="100" placeholder="Nouvelle ville" class="border p-2 rounded flex-grow"><button class="bg-purple-700 text-white px-4 rounded">Ajouter</button></form><ul id="admin-cities-list" class="divide-y"></ul></div>
+                <div class="bg-white p-5 border rounded-xl shadow-sm"><h2 class="font-bold text-lg mb-3">Catégories</h2><form onsubmit="addAdminItem(event,'category')" class="flex gap-2 mb-3"><input id="new-cat-input" required maxlength="100" placeholder="Nouvelle catégorie" class="border p-2 rounded flex-grow"><button class="bg-purple-700 text-white px-4 rounded">Ajouter</button></form><ul id="admin-categories-list" class="divide-y"></ul></div>
             </div>
-            <div class="bg-white p-5 border rounded-xl shadow-sm">
-                <h3 class="font-bold text-lg mb-3">Gestion des Membres</h3>
-                <ul id="admin-users-list" class="divide-y max-h-48 overflow-y-auto"></ul>
-            </div>
+            <div class="bg-white p-5 border rounded-xl shadow-sm"><h2 class="font-bold text-lg mb-3">Comptes membres</h2><ul id="admin-users-list" class="divide-y"></ul></div>
         </div>
     </section>
 
@@ -284,6 +273,7 @@ async function submitAuthForm(form, endpoint, messageId, payload) {
         form.reset();
 
         if (result.user) {
+            await syncSession();
             showSection('home');
         }
     } catch (error) {

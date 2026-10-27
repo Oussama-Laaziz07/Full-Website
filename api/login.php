@@ -27,7 +27,7 @@ try {
     $query = $pdo->prepare(
         'SELECT id, full_name, email, password_hash, role
          FROM users
-         WHERE email = ?
+         WHERE email = ? AND status = 'active'
          LIMIT 1'
     );
     $query->execute([$email]);

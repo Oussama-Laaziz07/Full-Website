@@ -1,4 +1,4 @@
-let ads = [], categories = [], cities = [];
+let ads = [], categories = [], cities = [], currentUser = null;
 
 function showSection(id) {
   document.querySelectorAll('.page-section').forEach(x => x.classList.add('hidden'));
@@ -25,6 +25,42 @@ async function loadDatabaseData() {
     if(grid) grid.textContent = 'Impossible de charger les annonces. Vérifiez les API et les journaux Vercel.';
   }
 }
+async function syncSession() {
+  try {
+    const result = await api('/api/session.php');
+    currentUser = result.user;
+    document.getElementById('admin-nav')?.classList.toggle('hidden', currentUser?.role !== 'admin');
+    document.getElementById('my-ads-nav')?.classList.toggle('hidden', !currentUser);
+    document.getElementById('logout-nav')?.classList.toggle('hidden', !currentUser);
+    renderMyAds(result.removed_ads || []);
+  } catch (e) { console.error(e); }
+}
+function renderMyAds(items) {
+  const root=document.getElementById('my-ads-list'); if(!root)return;
+  if(!currentUser){root.innerHTML='<p class="text-gray-600">Connectez-vous pour consulter vos annonces.</p>';return;}
+  if(!items.length){root.innerHTML='<p class="text-gray-600">Aucune annonce retirée.</p>';return;}
+  root.innerHTML=items.map(a=>`<article class="border rounded-lg p-4"><h3 class="font-semibold">${esc(a.title)}</h3><p class="text-sm text-gray-600 mt-1">${a.appeal_status==='pending'?'Appel en attente de décision.':a.appeal_status==='rejected'?'Appel précédent refusé.':'Annonce retirée.'}</p>${a.appeal_status==='pending'?'':`<form onsubmit="submitAppeal(event,${Number(a.id)})" class="mt-3 space-y-2"><label class="block text-sm font-medium">Motif de l’appel</label><textarea name="reason" required maxlength="2000" class="w-full border rounded p-2" rows="3"></textarea><button class="bg-orange-main text-white px-4 py-2 rounded">Envoyer l’appel</button></form>`}</article>`).join('');
+}
+async function submitAppeal(event,id){event.preventDefault();const reason=new FormData(event.target).get('reason');try{await api('/api/appeals.php',{method:'POST',body:JSON.stringify({ad_id:id,reason})});await syncSession();alert('Votre appel a été envoyé à l’administrateur.');}catch(e){alert(e.message);}}
+async function logout(){try{await api('/api/session.php',{method:'DELETE'});currentUser=null;await syncSession();showSection('home');}catch(e){alert(e.message);}}
+async function openAdmin(){await syncSession();if(currentUser?.role==='admin'){showSection('admin');await loadAdminDashboard();}else{alert('Accès réservé à l’administrateur.');}}
+async function adminAction(action,id=0,extra={}){try{await api('/api/admin.php',{method:'POST',body:JSON.stringify({action,id,...extra})});await loadAdminDashboard();await loadDatabaseData();await syncSession();return true;}catch(e){alert(e.message);return false;}}
+function emptyAdmin(id,text){const el=document.getElementById(id);if(el)el.innerHTML=`<p class="text-sm text-gray-500">${text}</p>`;}
+async function loadAdminDashboard(){
+  if(currentUser?.role!=='admin'){showSection('home');return;}
+  try{
+    const d=await api('/api/admin.php');
+    const card=a=>`<article class="border rounded-lg p-4 flex flex-col md:flex-row gap-4"><div class="flex-1"><h3 class="font-semibold">${esc(a.title)}</h3><p class="text-sm text-gray-600">${esc(a.category)} · ${esc(a.city)} · ${esc(a.owner_name||'Compte supprimé')}</p><p class="text-sm mt-1">${esc(a.description)}</p><p class="text-xs text-gray-500 mt-1">${esc(a.owner_email||'')}</p></div><div class="flex gap-2 items-start">${a.status==='pending_review'?`<button onclick="adminAction('approve-ad',${Number(a.id)})" class="bg-green-700 text-white px-3 py-2 rounded">Valider</button><button onclick="adminAction('remove-ad',${Number(a.id)})" class="bg-red-600 text-white px-3 py-2 rounded">Refuser</button>`:''}</div></article>`;
+    const pending=d.ads.filter(a=>a.status==='pending_review'), removed=d.ads.filter(a=>a.status==='removed');
+    document.getElementById('admin-pending-ads').innerHTML=pending.map(card).join('')||'<p class="text-sm text-gray-500">Aucune annonce à valider.</p>';
+    document.getElementById('admin-removed-ads').innerHTML=removed.map(card).join('')||'<p class="text-sm text-gray-500">La liste est vide.</p>';
+    document.getElementById('admin-appeals').innerHTML=d.appeals.map(a=>`<article class="border rounded-lg p-4"><h3 class="font-semibold">${esc(a.title)} — ${esc(a.owner_name)}</h3><p class="text-sm text-gray-600">${esc(a.owner_email)}</p><p class="mt-2 whitespace-pre-wrap">${esc(a.reason)}</p><div class="flex gap-2 mt-3"><button onclick="adminAction('resolve-appeal',${Number(a.id)},{decision:'approve'})" class="bg-green-700 text-white px-3 py-2 rounded">Rétablir l’annonce</button><button onclick="adminAction('resolve-appeal',${Number(a.id)},{decision:'reject'})" class="bg-red-600 text-white px-3 py-2 rounded">Refuser l’appel</button></div></article>`).join('')||'<p class="text-sm text-gray-500">Aucun appel à traiter.</p>';
+    const listItems=(items,type)=>items.map(x=>`<li class="py-2 flex justify-between items-center gap-3"><span>${esc(x.name)}</span><button onclick="adminAction('delete-${type}',${Number(x.id)})" class="text-red-600 text-sm">Supprimer</button></li>`).join('')||'<li class="py-2 text-sm text-gray-500">Aucun élément.</li>';
+    document.getElementById('admin-cities-list').innerHTML=listItems(d.cities,'city');document.getElementById('admin-categories-list').innerHTML=listItems(d.categories,'category');
+    document.getElementById('admin-users-list').innerHTML=d.users.map(u=>`<li class="py-2 flex justify-between items-center gap-3"><span>${esc(u.full_name)} (${esc(u.email)}) · ${esc(u.status)}</span>${u.status==='active'?`<button onclick="adminAction('delete-user',${Number(u.id)})" class="text-red-600 text-sm">Désactiver le compte</button>`:'<span class="text-sm text-gray-500">Désactivé</span>'}</li>`).join('')||'<li class="py-2 text-sm text-gray-500">Aucun membre.</li>';
+  }catch(e){['admin-pending-ads','admin-removed-ads','admin-appeals','admin-cities-list','admin-categories-list','admin-users-list'].forEach(id=>emptyAdmin(id,e.message));}
+}
+async function addAdminItem(event,type){event.preventDefault();const input=document.getElementById(type==='city'?'new-city-input':'new-cat-input');if(await adminAction(`add-${type}`,0,{name:input.value.trim()}))input.value='';}
 function populateDropdowns() {
   const cf=document.getElementById('category-filter'), yf=document.getElementById('city-filter');
   const pc=document.getElementById('post-category'), py=document.getElementById('post-city');
@@ -62,10 +98,11 @@ function viewAdDetails(id) {
 }
 async function handlePostAd(e) {
   e.preventDefault();
+  if(!currentUser){alert('Connectez-vous avant de déposer une annonce.');showSection('login');return;}
   const ad={title:document.getElementById('post-title').value.trim(),price:Number(document.getElementById('post-price').value),
     category_id:Number(document.getElementById('post-category').value),city_id:Number(document.getElementById('post-city').value),
     image:document.getElementById('post-img').value.trim(),description:document.getElementById('post-desc').value.trim()};
-  try { await api('/api/ads.php',{method:'POST',body:JSON.stringify(ad)}); e.target.reset(); await loadDatabaseData(); showSection('home'); alert('Annonce publiée avec succès !'); }
+  try { await api('/api/ads.php',{method:'POST',body:JSON.stringify(ad)}); e.target.reset(); showSection('home'); alert('Votre annonce a été envoyée à l’administrateur pour validation.'); }
   catch(err){alert('Erreur : '+err.message);}
 }
 async function sendMessage(e) {
@@ -77,4 +114,4 @@ async function sendMessage(e) {
     e.target.reset(); alert('Message envoyé !');
   } catch(err){alert('Erreur : '+err.message);}
 }
-document.addEventListener('DOMContentLoaded',loadDatabaseData);
+document.addEventListener('DOMContentLoaded',()=>{loadDatabaseData();syncSession();});

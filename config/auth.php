@@ -28,8 +28,39 @@ function createAuthCookie(array $user): void
     setcookie('offria_auth', $encodedPayload . '.' . $encodedSignature, [
         'expires' => time() + 60 * 60 * 24 * 7,
         'path' => '/',
-        'secure' => true,
+        'secure' => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https'),
         'httponly' => true,
         'samesite' => 'Lax',
     ]);
+}
+
+function currentUser(PDO $pdo): ?array
+{
+    $token = $_COOKIE['offria_auth'] ?? '';
+    $parts = explode('.', $token);
+    $secret = getenv('AUTH_SECRET');
+    if (count($parts) !== 2 || !is_string($secret) || strlen($secret) < 32) return null;
+    [$payload, $signature] = $parts;
+    $expected = rtrim(strtr(base64_encode(hash_hmac('sha256', $payload, $secret, true)), '+/', '-_'), '=');
+    if (!hash_equals($expected, $signature)) return null;
+    $decoded = base64_decode(strtr($payload, '-_', '+/'));
+    $claims = json_decode($decoded ?: '', true);
+    if (!is_array($claims) || empty($claims['id']) || (int)($claims['expires'] ?? 0) < time()) return null;
+    $q = $pdo->prepare('SELECT id, full_name, email, role FROM users WHERE id = ? AND status = \'active\' LIMIT 1');
+    $q->execute([(int)$claims['id']]);
+    return $q->fetch() ?: null;
+}
+
+function requireUser(PDO $pdo): array
+{
+    $user = currentUser($pdo);
+    if (!$user) jsonResponse(['error' => 'Please sign in to continue.'], 401);
+    return $user;
+}
+
+function requireAdmin(PDO $pdo): array
+{
+    $user = requireUser($pdo);
+    if ($user['role'] !== 'admin') jsonResponse(['error' => 'Administrator access required.'], 403);
+    return $user;
 }

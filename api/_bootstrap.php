@@ -32,7 +32,7 @@ function getJsonInput(): array
 function getDatabaseOrFail(): PDO
 {
     try {
-        return getDatabase();
+        return db();
     } catch (Throwable $error) {
         error_log($error->getMessage());
         sendJson(['error' => 'Could not connect to the database.'], 500);

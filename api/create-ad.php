@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/../config/auth.php';
 require_once __DIR__ . '/_bootstrap.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -33,7 +34,8 @@ if (strlen($image) > 2048) {
     sendJson(['error' => 'The image URL is too long.'], 400);
 }
 
-$db = getDatabaseOrFail();
+$db = db();
+$user = requireUser($db);
 
 try {
     $db->beginTransaction();
@@ -52,10 +54,11 @@ try {
     }
 
     $insertAd = $db->prepare(
-        'INSERT INTO ads (category_id, city_id, title, price, description)
-         VALUES (?, ?, ?, ?, ?)'
+        "INSERT INTO ads (owner_id, category_id, city_id, title, price, description, status)
+         VALUES (?, ?, ?, ?, ?, ?, 'pending_review')"
     );
     $insertAd->execute([
+        (int)$user['id'],
         $categoryId,
         $cityId,
         $title,
@@ -77,6 +80,7 @@ try {
 
     sendJson([
         'success' => true,
+        'message' => 'Your ad was submitted for administrator review.',
         'ad' => [
             'id' => $adId,
             'title' => $title,
