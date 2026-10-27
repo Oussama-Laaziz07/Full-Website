@@ -25,10 +25,10 @@ try {
     $pdo = db();
 
     $query = $pdo->prepare(
-        'SELECT id, full_name, email, password_hash, role
+        "SELECT id, full_name, email, password_hash, role
          FROM users
          WHERE email = ? AND status = 'active'
-         LIMIT 1'
+         LIMIT 1"
     );
     $query->execute([$email]);
     $user = $query->fetch();
