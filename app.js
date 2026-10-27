@@ -8,7 +8,8 @@ function esc(v) {
   return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 async function api(path, options = {}) {
-  const res = await fetch(path, {...options, headers:{...(options.headers||{}), ...(options.body ? {'Content-Type':'application/json'} : {})}});
+  const isFormData = options.body instanceof FormData;
+  const res = await fetch(path, {...options, headers:{...(options.headers||{}), ...(options.body && !isFormData ? {'Content-Type':'application/json'} : {})}});
   let data;
   try { data = await res.json(); } catch { throw new Error('API returned a non-JSON response (' + res.status + ').'); }
   if (!res.ok) throw new Error(data.error || 'Request failed (' + res.status + ')');
@@ -99,11 +100,27 @@ function viewAdDetails(id) {
 async function handlePostAd(e) {
   e.preventDefault();
   if(!currentUser){alert('Connectez-vous avant de déposer une annonce.');showSection('login');return;}
-  const ad={title:document.getElementById('post-title').value.trim(),price:Number(document.getElementById('post-price').value),
-    category_id:Number(document.getElementById('post-category').value),city_id:Number(document.getElementById('post-city').value),
-    image:document.getElementById('post-img').value.trim(),description:document.getElementById('post-desc').value.trim()};
-  try { await api('/api/ads.php',{method:'POST',body:JSON.stringify(ad)}); e.target.reset(); showSection('home'); alert('Votre annonce a été envoyée à l’administrateur pour validation.'); }
-  catch(err){alert('Erreur : '+err.message);}
+  const image=document.getElementById('post-img').files[0];
+  const status=document.getElementById('post-status');
+  const button=e.submitter||e.target.querySelector('button[type="submit"]');
+  if(image&&image.size>5*1024*1024){status.textContent='La photo doit faire 5 Mo maximum.';status.className='text-sm mt-2 text-red-700';return;}
+  const ad=new FormData();
+  ad.append('title',document.getElementById('post-title').value.trim());
+  ad.append('price',document.getElementById('post-price').value);
+  ad.append('category_id',document.getElementById('post-category').value);
+  ad.append('city_id',document.getElementById('post-city').value);
+  ad.append('description',document.getElementById('post-desc').value.trim());
+  if(image) ad.append('image',image);
+  button.disabled=true;status.textContent=image?'Envoi de l’annonce et de la photo...':'Envoi de l’annonce...';status.className='text-sm mt-2 text-gray-600';
+  try { await api('/api/ads.php',{method:'POST',body:ad}); e.target.reset(); document.getElementById('post-img-preview').classList.add('hidden'); status.textContent=''; showSection('home'); alert('Votre annonce a été envoyée à l’administrateur pour validation.'); }
+  catch(err){status.textContent=err.message;status.className='text-sm mt-2 text-red-700';}
+  finally{button.disabled=false;}
+}
+function previewAdImage(event){
+  const file=event.target.files[0],preview=document.getElementById('post-img-preview'),status=document.getElementById('post-status');
+  if(!file){preview.classList.add('hidden');preview.removeAttribute('src');status.textContent='';return;}
+  if(file.size>5*1024*1024){event.target.value='';preview.classList.add('hidden');status.textContent='La photo doit faire 5 Mo maximum.';status.className='text-sm mt-2 text-red-700';return;}
+  preview.src=URL.createObjectURL(file);preview.classList.remove('hidden');status.textContent='';
 }
 async function sendMessage(e) {
   e.preventDefault();

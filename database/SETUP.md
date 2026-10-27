@@ -4,6 +4,11 @@ The site already uses PDO with the Aiven MySQL CA certificate in `certs/ca.pem`.
 
 - `DB_PASSWORD`: the Aiven service password (not present in the screenshot)
 - `AUTH_SECRET`: a private random string of at least 32 characters
+- `CLOUDINARY_CLOUD_NAME`: the Cloudinary product environment name
+- `CLOUDINARY_API_KEY`: the Cloudinary API key
+- `CLOUDINARY_API_SECRET`: the Cloudinary API secret (keep this server-side; never place it in browser code)
+
+New ad photos are uploaded from the PHP API to Cloudinary over HTTPS. Set all three Cloudinary variables in the hosting environment before enabling photo uploads. Ad submissions without a photo do not require Cloudinary configuration.
 
 Run `moderation_migration.sql` once against `defaultdb` before deploying. Replace the example email at the bottom with the email address of the account that should administer the site. That account must register first. The SQL promotes it to `admin`; public registration always creates ordinary user accounts.
 

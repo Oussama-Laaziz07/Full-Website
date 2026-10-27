@@ -149,9 +149,12 @@
                     <select id="post-city" required class="w-full border p-2 rounded-lg bg-white"></select>
                 </div>
                 <div>
-                    <label for="post-img" class="block text-sm font-medium mb-1">Image (URL ou chemin, facultatif)</label>
-                    <input type="text" id="post-img" placeholder="images/photo.jpg ou https://..."
+                    <label for="post-img" class="block text-sm font-medium mb-1">Photo (facultatif)</label>
+                    <input type="file" id="post-img" accept="image/jpeg,image/png,image/webp,image/gif" onchange="previewAdImage(event)"
                            class="w-full border p-2 rounded-lg">
+                    <p class="text-xs text-gray-500 mt-1">Choisissez une photo depuis vos fichiers (5 Mo maximum).</p>
+                    <img id="post-img-preview" class="hidden mt-3 max-h-48 rounded-lg object-cover" alt="Aperçu de la photo">
+                    <p id="post-status" class="text-sm mt-2" role="status"></p>
                 </div>
                 <div>
                     <label for="post-desc" class="block text-sm font-medium mb-1">Description</label>
