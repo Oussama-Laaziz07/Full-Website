@@ -1,4 +1,7 @@
 let ads = [], categories = [], cities = [], currentUser = null;
+let favoritesOnly = false;
+let favorites = new Set();
+try { favorites = new Set(JSON.parse(localStorage.getItem('offria-favorites') || '[]').map(Number)); } catch { favorites = new Set(); }
 
 function showSection(id) {
   document.querySelectorAll('.page-section').forEach(x => x.classList.add('hidden'));
@@ -77,9 +80,11 @@ function populateDropdowns() {
 }
 function renderAds(items=ads) {
   const grid=document.getElementById('ads-grid'); if(!grid)return;
-  if(!items.length){grid.innerHTML='<p class="text-gray-500 col-span-full text-center py-8">Aucune annonce trouvée.</p>';return;}
-  grid.innerHTML=items.map(a=>`<article class="bg-white border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition flex flex-col">
-    <img src="${esc(a.image||'images/Offria.jpg')}" class="h-48 w-full object-cover" alt="${esc(a.title)}" onerror="this.src='images/Offria.jpg'">
+  const count=document.getElementById('results-count'); if(count)count.textContent=`${items.length} annonce${items.length===1?'':'s'} trouvée${items.length===1?'':'s'}`;
+  const favoriteCount=document.getElementById('favorites-count'); if(favoriteCount)favoriteCount.textContent=String(favorites.size);
+  if(!items.length){grid.innerHTML='<div class="bg-white rounded-2xl border border-dashed p-12 text-gray-500 col-span-full text-center"><i class="fa-regular fa-face-meh text-3xl mb-3"></i><p>Aucune annonce trouvée.</p><button class="text-orange-main font-semibold mt-3" onclick="resetFilters()">Effacer les filtres</button></div>';return;}
+  grid.innerHTML=items.map(a=>`<article class="ad-card bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm flex flex-col">
+    <div class="relative"><img src="${esc(a.image||'images/Offria.jpg')}" class="h-52 w-full object-cover" alt="${esc(a.title)}" onerror="this.src='images/Offria.jpg'"><button type="button" aria-label="${favorites.has(Number(a.id))?'Retirer des':'Ajouter aux'} favoris" onclick="toggleFavorite(${Number(a.id)})" class="favorite-btn ${favorites.has(Number(a.id))?'is-active':''} absolute top-3 right-3 bg-white/95 rounded-full w-10 h-10 shadow flex items-center justify-center transition"><i class="fa-${favorites.has(Number(a.id))?'solid':'regular'} fa-heart"></i></button></div>
     <div class="p-4 flex-grow flex flex-col justify-between"><div>
     <span class="text-xs font-semibold uppercase text-orange-600 bg-orange-50 px-2 py-1 rounded">${esc(a.category)}</span>
     <h3 class="font-bold text-lg text-gray-900 mt-2 line-clamp-1">${esc(a.title)}</h3>
@@ -90,7 +95,26 @@ function renderAds(items=ads) {
 function filterAds() {
   const q=(document.getElementById('search-input')?.value||'').toLowerCase();
   const c=document.getElementById('category-filter')?.value||'', y=document.getElementById('city-filter')?.value||'';
-  renderAds(ads.filter(a=>String(a.title).toLowerCase().includes(q)&&(!c||a.category===c)&&(!y||a.city===y)));
+  const sort=document.getElementById('sort-filter')?.value||'recent';
+  const matches=ads.filter(a=>String(a.title+' '+(a.description||'')).toLowerCase().includes(q)&&(!c||a.category===c)&&(!y||a.city===y)&&(!favoritesOnly||favorites.has(Number(a.id))));
+  if(sort==='price-asc')matches.sort((a,b)=>Number(a.price)-Number(b.price));
+  if(sort==='price-desc')matches.sort((a,b)=>Number(b.price)-Number(a.price));
+  renderAds(matches);
+}
+function toggleFavorite(id) {
+  id=Number(id); favorites.has(id)?favorites.delete(id):favorites.add(id);
+  try { localStorage.setItem('offria-favorites',JSON.stringify([...favorites])); } catch {}
+  filterAds();
+}
+function toggleFavorites() {
+  favoritesOnly=!favoritesOnly;
+  const button=document.getElementById('favorites-toggle');
+  if(button)button.classList.toggle('bg-orange-50',favoritesOnly);
+  filterAds();
+}
+function resetFilters() {
+  document.getElementById('search-input').value=''; document.getElementById('category-filter').value=''; document.getElementById('city-filter').value=''; favoritesOnly=false;
+  document.getElementById('favorites-toggle')?.classList.remove('bg-orange-50'); filterAds();
 }
 function viewAdDetails(id) {
   const a=ads.find(x=>Number(x.id)===Number(id)); if(!a)return;

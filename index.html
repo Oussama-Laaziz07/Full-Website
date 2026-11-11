@@ -10,14 +10,22 @@
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        :root { --primary-orange: #FF9500; }
+        :root { --primary-orange: #f47721; --ink:#19231f; --cream:#f7f7f2; }
         .bg-orange-main { background-color: var(--primary-orange); }
         .text-orange-main { color: var(--primary-orange); }
         .hover-orange:hover { background-color: #e08300; }
+        body { background:var(--cream); color:var(--ink); }
+        .page-section { animation: arrive .35s ease both; }
+        @keyframes arrive { from { opacity:0; transform:translateY(10px) } to { opacity:1; transform:translateY(0) } }
+        .ad-card { transition:transform .22s ease, box-shadow .22s ease; }
+        .ad-card:hover { transform:translateY(-5px); box-shadow:0 18px 40px #1e35241a; }
+        .favorite-btn.is-active { color:#ed5e52; background:#fff0ed; }
+        .filter-control:focus { outline:3px solid #f4772133; border-color:#f47721; }
+        @media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation-duration:.01ms!important; transition-duration:.01ms!important; scroll-behavior:auto!important } }
     </style>
 </head>
 
-<body class="bg-gray-100 text-gray-800 font-sans min-h-screen flex flex-col">
+<body class="text-gray-800 font-sans min-h-screen flex flex-col">
 
 <header class="bg-white shadow-sm border-b sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
@@ -58,30 +66,42 @@
     </div>
 </header>
 
-<main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full">
+<main class="max-w-7xl mx-auto px-4 py-6 md:py-10 flex-grow w-full">
 
     <section id="section-home" class="page-section">
-        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-6 flex flex-wrap gap-3 items-center">
+        <div class="relative overflow-hidden bg-gray-900 text-white rounded-3xl p-7 md:p-12 mb-8 shadow-xl">
+            <div class="absolute -right-12 -top-24 w-80 h-80 rounded-full bg-orange-500 opacity-20 blur-3xl"></div>
+            <div class="relative max-w-2xl">
+                <span class="text-orange-300 text-sm font-semibold tracking-widest uppercase">Le bon choix, près de chez vous</span>
+                <h1 class="text-3xl md:text-5xl font-extrabold mt-3 leading-tight">Trouvez votre prochain <span class="text-orange-300">coup de cœur.</span></h1>
+                <p class="text-gray-300 mt-4 md:text-lg">Des milliers de bonnes affaires partout au Maroc.</p>
+                <button type="button" onclick="showSection('add-ad')" class="mt-6 bg-orange-main text-white px-5 py-3 rounded-xl font-semibold hover-orange transition">Déposer une annonce <i class="fa-solid fa-arrow-right ml-2"></i></button>
+            </div>
+        </div>
+        <div class="bg-white p-4 md:p-5 rounded-2xl shadow-sm border border-gray-200 mb-8 flex flex-wrap gap-3 items-center">
             <div class="flex-grow min-w-[200px]">
                 <input type="text" id="search-input" placeholder="Que cherchez-vous ?"
                        oninput="filterAds()"
-                       class="w-full border rounded-lg px-4 py-2 border-gray-300">
+                       class="filter-control w-full border rounded-xl px-4 py-3 border-gray-300 transition">
             </div>
             <div class="w-48">
                 <select id="category-filter" onchange="filterAds()"
-                        class="w-full border rounded-lg px-3 py-2 border-gray-300 bg-white">
+                        class="filter-control w-full border rounded-xl px-3 py-3 border-gray-300 bg-white transition">
                     <option value="">Toutes les catégories</option>
                 </select>
             </div>
             <div class="w-48">
                 <select id="city-filter" onchange="filterAds()"
-                        class="w-full border rounded-lg px-3 py-2 border-gray-300 bg-white">
+                        class="filter-control w-full border rounded-xl px-3 py-3 border-gray-300 bg-white transition">
                     <option value="">Toutes les villes</option>
                 </select>
             </div>
         </div>
 
-        <h2 class="text-xl font-bold mb-4">Annonces disponibles</h2>
+        <div class="flex flex-wrap items-end justify-between gap-3 mb-4">
+            <div><h2 class="text-2xl font-bold">Annonces disponibles</h2><p id="results-count" class="text-sm text-gray-500 mt-1" aria-live="polite"></p></div>
+            <div class="flex items-center gap-2"><label for="sort-filter" class="text-sm text-gray-500">Trier par</label><select id="sort-filter" onchange="filterAds()" class="filter-control border rounded-lg px-3 py-2 bg-white"><option value="recent">Plus récentes</option><option value="price-asc">Prix croissant</option><option value="price-desc">Prix décroissant</option></select><button id="favorites-toggle" type="button" onclick="toggleFavorites()" class="border rounded-lg px-3 py-2 text-sm hover:bg-white transition"><i class="fa-regular fa-heart mr-1"></i> Favoris <span id="favorites-count">0</span></button></div>
+        </div>
         <div id="ads-grid"
              class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
     </section>
